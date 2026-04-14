@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Weather Window</title>
+
+  <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='argon/img/apple-icon.png') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='argon/img/favicon.png') }}">
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nucleo/2.0.6/css/nucleo-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link id="pagestyle" href="{{ url_for('static', filename='argon/css/argon-dashboard.css') }}" rel="stylesheet" />
+
+  <style>
+  body {
+    background: #f3f4f6;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+
+  .container-fluid {
+    max-width: 1500px;
+  }
+
+  .hero-card {
+    border: 0;
+    min-height: 190px;
+    background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
+    color: white;
+    border-radius: 1.25rem;
+  }
+
+  .hero-card h1 {
+    font-size: 3rem;
+    line-height: 1.08;
+    margin-bottom: 1rem;
+    color: white;
+  }
+
+  .hero-card .summary-text {
+    font-size: 1.15rem;
+    opacity: 0.95;
+  }
+
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid #eceff3;
+    gap: 1rem;
+  }
+
+  .metric-row:last-child {
+    border-bottom: 0;
+  }
+
+  .forecast-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .hour-card,
+  .day-card {
+    flex: 0 0 auto;
+    border-radius: 1rem;
+    background: #f8f9fe;
+    border: 1px solid #e9ecef;
+    text-align: center;
+  }
+
+  .hour-card {
+    min-width: 110px;
+    padding: 1rem 0.85rem;
+  }
+
+  .day-card {
+    min-width: 165px;
+    padding: 1rem;
+  }
+
+  .day-card-featured {
+    min-width: 220px;
+  }
+
+  .hour-time,
+  .day-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #344767;
+    margin-bottom: 0.5rem;
+  }
+
+  .hour-temp {
+    font-weight: 700;
+    color: #344767;
+    margin-top: 0.25rem;
+  }
+
+  .hour-rain,
+  .day-rain,
+  .day-desc,
+  .day-temp-low {
+    font-size: 0.85rem;
+    color: #8392ab;
+  }
+
+  .day-temps {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: #344767;
+    margin-top: 0.4rem;
+  }
+
+  .current-main-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .weather-big-icon {
+    width: 110px;
+    height: 110px;
+    object-fit: contain;
+  }
+
+  .current-temp-value {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #344767;
+  }
+
+  .current-condition {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #344767;
+  }
+
+  .current-feels {
+    font-size: 1rem;
+    color: #8392ab;
+    margin-top: 0.35rem;
+  }
+
+  .current-summary {
+    margin-top: 1.25rem;
+    font-size: 1rem;
+    color: #52617a;
+  }
+
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .detail-item {
+    background: #f8f9fe;
+    border: 1px solid #edf0f3;
+    border-radius: 0.9rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .detail-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #8392ab;
+    margin-bottom: 0.25rem;
+  }
+
+  .detail-value {
+    font-weight: 700;
+    color: #344767;
+  }
+
+  .error-box {
+    display: none;
+  }
+
+  .card {
+    border-radius: 1.25rem;
+  }
+
+  @media (max-width: 991px) {
+    .hero-card h1 {
+      font-size: 2.2rem;
+    }
+
+    .details-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .current-temp-value {
+      font-size: 3rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .details-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+
+<body class="bg-gray-100">
+  <main class="main-content position-relative">
+    <div class="row mb-4 align-items-stretch">
+  <div class="col-lg-8 mb-4 mb-lg-0">
+    <div class="card hero-card h-100">
+      <div class="card-body p-4 d-flex flex-column justify-content-center">
+        <p class="text-uppercase text-sm mb-2 opacity-8">Weather Window</p>
+        <h1 class="text-white mb-3">Plan your day around the weather.</h1>
+        <p class="mb-0 summary-text">
+          Current conditions, hourly forecast, and simple recommendations.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column justify-content-center">
+        <form id="weatherForm">
+          <div class="mb-3">
+            <input type="text" id="city" class="form-control" placeholder="City" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="country" class="form-control" placeholder="Country code (optional)" maxlength="2">
+          </div>
+          <div class="mb-3">
+            <select id="units" class="form-control">
+              <option value="metric">Metric</option>
+              <option value="imperial">Imperial</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mb-0">Check weather</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <div id="errorBox" class="alert alert-danger error-box mb-4"></div>
+
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h3 id="locationName" class="mb-3">Search for a city</h3>
+              <p id="summaryText" class="mb-0 text-sm">Your weather summary will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="card h-100">
+            <div class="card-header pb-0">
+              <h5 class="mb-0">Current</h5>
+            </div>
+            <div class="card-body" id="currentWeather"></div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header pb-0">
+              <h5 class="mb-0">Planner</h5>
+            </div>
+            <div class="card-body" id="insights"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header pb-0">
+              <h5 class="mb-0">Hourly forecast</h5>
+            </div>
+            <div class="card-body">
+              <div id="hourlyList" class="forecast-scroll"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header pb-0">
+              <h5 class="mb-0">5-day forecast</h5>
+            </div>
+            <div class="card-body">
+              <div id="dailyList" class="forecast-scroll"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='argon/js/core/popper.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='argon/js/core/bootstrap.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='argon/js/app.js') }}"></script>
+</body>
+</html>

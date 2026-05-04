@@ -14,201 +14,372 @@
   <link id="pagestyle" href="{{ url_for('static', filename='argon/css/argon-dashboard.css') }}" rel="stylesheet" />
 
   <style>
-  body {
-    background: #f3f4f6;
+  :root {
+    --night-1: #171a47;
+    --night-2: #28215e;
+    --night-3: #4c4483;
+    --panel: rgba(92, 84, 145, 0.74);
+    --panel-strong: rgba(105, 96, 159, 0.86);
+    --panel-soft: rgba(255, 255, 255, 0.08);
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.74);
+    --sun: #ffb020;
+    --rain: #7dd3fc;
+    --line: rgba(255, 255, 255, 0.12);
+  }
+
+  body.bg-gray-100 {
+    min-height: 100vh;
+    color: var(--text-main);
+    background:
+      radial-gradient(circle at 22% 12%, rgba(120, 105, 210, 0.75), transparent 28%),
+      radial-gradient(circle at 90% 8%, rgba(44, 114, 207, 0.35), transparent 26%),
+      linear-gradient(145deg, var(--night-1), var(--night-2) 48%, #202653);
   }
 
   .main-content {
     margin-left: 0 !important;
+    padding: 1.35rem;
   }
 
   .container-fluid {
     max-width: 1500px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .weather-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .location-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--text-main);
+    font-weight: 800;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+  }
+
+  .app-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(340px, 0.95fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .card,
+  .glass-card {
+    border: 1px solid var(--line) !important;
+    border-radius: 1.1rem !important;
+    background: var(--panel) !important;
+    box-shadow: 0 24px 70px rgba(8, 10, 35, 0.22);
+    color: var(--text-main);
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .card h3,
+  .card h5,
+  .card h6 {
+    color: var(--text-main);
   }
 
   .hero-card {
-    border: 0;
-    min-height: 190px;
-    background: linear-gradient(135deg, #5e72e4 0%, #825ee4 100%);
-    color: white;
-    border-radius: 1.25rem;
+    min-height: 320px;
+    background: linear-gradient(135deg, rgba(75, 70, 134, 0.92), rgba(89, 81, 150, 0.88)) !important;
   }
 
-  .hero-card h1 {
-    font-size: 3rem;
-    line-height: 1.08;
+  .current-label {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 700;
     margin-bottom: 1rem;
+  }
+
+  .current-main-row {
+    display: grid;
+    grid-template-columns: auto auto minmax(150px, 1fr);
+    align-items: center;
+    gap: 1.2rem;
+  }
+
+  .weather-big-icon {
+    width: 118px;
+    height: 118px;
+    object-fit: contain;
+    filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.24));
+  }
+
+  .current-temp-value {
+    font-size: clamp(3.2rem, 7vw, 5.4rem);
+    font-weight: 300;
+    line-height: 0.98;
+    color: var(--text-main);
+    letter-spacing: -0.08em;
+  }
+
+  .current-condition {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .current-feels,
+  .current-summary {
+    color: var(--text-muted);
+  }
+
+  .current-summary {
+    margin-top: 1.35rem;
+    font-size: 1.05rem;
+  }
+
+  .details-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin-top: 1.65rem;
+  }
+
+  .detail-item,
+  .metric-row {
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    border-radius: 0.9rem;
+  }
+
+  .detail-item {
+    padding: 0.85rem;
+  }
+
+  .detail-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .detail-value {
+    color: var(--text-main);
+    font-weight: 800;
+  }
+
+  .search-card {
+    background: rgba(255, 255, 255, 0.10) !important;
+  }
+
+  .form-control {
+    background: rgba(255, 255, 255, 0.90);
+    border: 0;
+    color: #243049;
+    font-weight: 700;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #f6b73c, #ff8f3d) !important;
+    border: 0;
+    box-shadow: 0 12px 30px rgba(255, 154, 61, 0.28);
+  }
+
+  .map-card {
+    min-height: 320px;
+  }
+
+  .weather-map {
+    position: relative;
+    min-height: 245px;
+    border-radius: 1rem;
+    overflow: hidden;
+    background:
+      linear-gradient(130deg, rgba(255, 255, 255, 0.80), rgba(218, 232, 244, 0.88)),
+      radial-gradient(circle at 18% 70%, #c8d7c2 0 12%, transparent 13%),
+      radial-gradient(circle at 62% 26%, #d2dec8 0 14%, transparent 15%);
+  }
+
+  .weather-map::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(32deg, transparent 0 47%, rgba(107, 125, 150, 0.30) 48% 49%, transparent 50%),
+      linear-gradient(122deg, transparent 0 52%, rgba(107, 125, 150, 0.24) 53% 54%, transparent 55%),
+      linear-gradient(8deg, transparent 0 58%, rgba(107, 125, 150, 0.18) 59% 60%, transparent 61%);
+    opacity: 0.7;
+  }
+
+  .map-toolbar {
+    position: absolute;
+    top: 0.85rem;
+    left: 0.85rem;
+    display: flex;
+    gap: 0.35rem;
+    z-index: 3;
+    padding: 0.35rem;
+    border-radius: 0.7rem;
+    background: rgba(47, 51, 67, 0.74);
+  }
+
+  .map-tool {
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.55rem;
     color: white;
   }
 
-  .hero-card .summary-text {
-    font-size: 1.15rem;
-    opacity: 0.95;
+  .map-tool.active {
+    background: var(--sun);
   }
 
-  .metric-row {
+  .map-marker {
+    position: absolute;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #1d2540;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+  }
+
+  .map-marker .marker-icon {
+    display: block;
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .marker-primary {
+    left: 48%;
+    top: 48%;
+    color: #0f172a;
+  }
+
+  .map-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.9rem 0;
-    border-bottom: 1px solid #eceff3;
-    gap: 1rem;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    color: var(--text-main);
+    background: rgba(55, 68, 92, 0.72);
   }
 
-  .metric-row:last-child {
-    border-bottom: 0;
+  .map-footer a {
+    color: #7dd3fc;
+    font-weight: 800;
+  }
+
+  .summary-card {
+    background: rgba(255, 255, 255, 0.08) !important;
   }
 
   .forecast-scroll {
     display: flex;
-    gap: 1rem;
+    gap: 0.9rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
   }
 
   .hour-card,
   .day-card {
     flex: 0 0 auto;
+    min-width: 125px;
     border-radius: 1rem;
-    background: #f8f9fe;
-    border: 1px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--line);
     text-align: center;
-  }
-
-  .hour-card {
-    min-width: 110px;
     padding: 1rem 0.85rem;
+    color: var(--text-main);
   }
 
   .day-card {
-    min-width: 165px;
-    padding: 1rem;
+    min-width: 170px;
   }
 
   .day-card-featured {
-    min-width: 220px;
+    min-width: 250px;
+    background: rgba(255, 255, 255, 0.13);
   }
 
   .hour-time,
-  .day-name {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #344767;
-    margin-bottom: 0.5rem;
-  }
-
-  .hour-temp {
-    font-weight: 700;
-    color: #344767;
-    margin-top: 0.25rem;
+  .day-name,
+  .hour-temp,
+  .day-temps {
+    color: var(--text-main);
+    font-weight: 800;
   }
 
   .hour-rain,
   .day-rain,
   .day-desc,
   .day-temp-low {
-    font-size: 0.85rem;
-    color: #8392ab;
+    color: var(--text-muted);
   }
 
-  .day-temps {
+  .metric-row {
     display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    color: #344767;
-    margin-top: 0.4rem;
-  }
-
-  .current-main-row {
-    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-  }
-
-  .weather-big-icon {
-    width: 110px;
-    height: 110px;
-    object-fit: contain;
-  }
-
-  .current-temp-value {
-    font-size: 4rem;
-    font-weight: 700;
-    line-height: 1;
-    color: #344767;
-  }
-
-  .current-condition {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #344767;
-  }
-
-  .current-feels {
-    font-size: 1rem;
-    color: #8392ab;
-    margin-top: 0.35rem;
-  }
-
-  .current-summary {
-    margin-top: 1.25rem;
-    font-size: 1rem;
-    color: #52617a;
-  }
-
-  .details-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 0.95rem 1rem;
+    margin-bottom: 0.8rem;
     gap: 1rem;
-    margin-top: 1.5rem;
   }
 
-  .detail-item {
-    background: #f8f9fe;
-    border: 1px solid #edf0f3;
-    border-radius: 0.9rem;
-    padding: 0.85rem 1rem;
+  .metric-row:last-child {
+    margin-bottom: 0;
   }
 
-  .detail-label {
-    display: block;
-    font-size: 0.85rem;
-    color: #8392ab;
-    margin-bottom: 0.25rem;
+  .metric-row span {
+    color: var(--text-muted) !important;
   }
 
-  .detail-value {
-    font-weight: 700;
-    color: #344767;
+  .metric-row strong {
+    color: var(--text-main);
+    text-align: right;
   }
 
   .error-box {
     display: none;
   }
 
-  .card {
-    border-radius: 1.25rem;
+  @media (max-width: 1100px) {
+    .app-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .details-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
-  @media (max-width: 991px) {
-    .hero-card h1 {
-      font-size: 2.2rem;
+  @media (max-width: 700px) {
+    .main-content {
+      padding: 0.8rem;
+    }
+
+    .current-main-row {
+      grid-template-columns: 1fr;
+      text-align: center;
+      justify-items: center;
     }
 
     .details-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .current-temp-value {
-      font-size: 3rem;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .details-grid {
-      grid-template-columns: 1fr;
     }
   }
 </style>
@@ -216,62 +387,99 @@
 
 <body class="bg-gray-100">
   <main class="main-content position-relative">
-    <div class="row mb-4 align-items-stretch">
-  <div class="col-lg-8 mb-4 mb-lg-0">
-    <div class="card hero-card h-100">
-      <div class="card-body p-4 d-flex flex-column justify-content-center">
-        <p class="text-uppercase text-sm mb-2 opacity-8">Weather Window</p>
-        <h1 class="text-white mb-3">Plan your day around the weather.</h1>
-        <p class="mb-0 summary-text">
-          Current conditions, hourly forecast, and simple recommendations.
-        </p>
+    <div class="container-fluid py-2">
+      <div class="weather-topbar">
+        <div id="locationPill" class="location-pill">
+          <i class="fa-solid fa-location-dot"></i>
+          <span>Search a location</span>
+          <i class="fa-solid fa-chevron-down text-xs"></i>
+        </div>
+        <div class="text-sm text-white-50">Weather Window</div>
       </div>
-    </div>
-  </div>
-
-  <div class="col-lg-4">
-    <div class="card h-100">
-      <div class="card-body d-flex flex-column justify-content-center">
-        <form id="weatherForm">
-          <div class="mb-3">
-            <input type="text" id="city" class="form-control" placeholder="City" required>
-          </div>
-          <div class="mb-3">
-            <input type="text" id="country" class="form-control" placeholder="Country code (optional)" maxlength="2">
-          </div>
-          <div class="mb-3">
-            <select id="units" class="form-control">
-              <option value="metric">Metric</option>
-              <option value="imperial">Imperial</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary w-100 mb-0">Check weather</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
 
       <div id="errorBox" class="alert alert-danger error-box mb-4"></div>
 
-      <div class="row mb-4">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-body">
-              <h3 id="locationName" class="mb-3">Search for a city</h3>
-              <p id="summaryText" class="mb-0 text-sm">Your weather summary will appear here.</p>
+      <section class="app-shell">
+        <div class="card hero-card">
+          <div class="card-body p-4 p-lg-5">
+            <div class="current-label">
+              <span>Current weather</span>
+              <span id="currentTime" class="ms-2"></span>
+            </div>
+            <div id="currentWeather">
+              <div class="current-main-row">
+                <div class="weather-big-icon d-flex align-items-center justify-content-center fs-1">🌙</div>
+                <div class="current-temp-value">--</div>
+                <div>
+                  <div class="current-condition">Search for a city</div>
+                  <div class="current-feels">Current conditions will appear here.</div>
+                </div>
+              </div>
+              <p class="current-summary mb-0">Enter a city and country code to view a color-rich forecast.</p>
             </div>
           </div>
         </div>
-      </div>
+
+        <div class="card map-card">
+          <div class="card-body p-3">
+            <form id="weatherForm" class="search-card card mb-3">
+              <div class="card-body p-3">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <input type="text" id="city" class="form-control" placeholder="City" required>
+                  </div>
+                  <div class="col-5">
+                    <input type="text" id="country" class="form-control" placeholder="US" maxlength="2">
+                  </div>
+                  <div class="col-7">
+                    <select id="units" class="form-control">
+                      <option value="metric">Metric</option>
+                      <option value="imperial">Imperial</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mt-3 mb-0">Check weather</button>
+              </div>
+            </form>
+
+            <div class="weather-map" id="weatherMap" aria-label="Regional weather map">
+              <div class="map-toolbar">
+                <span class="map-tool active"><i class="fa-solid fa-droplet"></i></span>
+                <span class="map-tool"><i class="fa-solid fa-temperature-half"></i></span>
+                <span class="map-tool"><i class="fa-solid fa-wind"></i></span>
+              </div>
+              <div class="map-marker marker-primary" id="mapPrimaryMarker">
+                <span class="marker-icon">🌙</span>
+                <span>Search</span>
+              </div>
+              <div class="map-marker" style="left: 72%; top: 30%;">
+                <span class="marker-icon">🌤️</span>
+                <span>North</span>
+              </div>
+              <div class="map-marker" style="left: 30%; top: 68%;">
+                <span class="marker-icon">🌙</span>
+                <span>South</span>
+              </div>
+              <div class="map-marker" style="left: 82%; top: 64%;">
+                <span class="marker-icon">☀️</span>
+                <span>East</span>
+              </div>
+            </div>
+            <div class="map-footer">
+              <span id="mapStatus">No precipitation layer selected</span>
+              <a id="mapLink" href="https://www.openstreetmap.org" target="_blank" rel="noopener">Open Map</a>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div class="row mb-4">
         <div class="col-lg-6 mb-4 mb-lg-0">
-          <div class="card h-100">
-            <div class="card-header pb-0">
-              <h5 class="mb-0">Current</h5>
+          <div class="card summary-card h-100">
+            <div class="card-body">
+              <h3 id="locationName" class="mb-3">Search for a city</h3>
+              <p id="summaryText" class="mb-0 text-sm text-white-50">Your weather summary will appear here.</p>
             </div>
-            <div class="card-body" id="currentWeather"></div>
           </div>
         </div>
 

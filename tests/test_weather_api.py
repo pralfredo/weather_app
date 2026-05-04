@@ -128,3 +128,83 @@ def test_fetch_forecast_returns_none_on_request_error(monkeypatch):
 
     monkeypatch.setattr(weather_api.requests, "get", fake_get)
     assert weather_api.fetch_forecast(1.0, 2.0, "metric") is None
+import pytest
+
+from services import weather_api
+from services.forecast_analyzer import find_best_time_window
+
+
+def test_find_best_time_window_unavailable_when_no_temperatures():
+    assert find_best_time_window([{"time_label": "9 AM"}, {"pop": 10}]) == "Unavailable"
+
+
+def test_geocode_location_returns_none_when_lat_lon_missing(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "key")
+    monkeypatch.setattr(
+        weather_api.requests,
+        "get",
+        lambda url, params, timeout: DummyResponse(
+            json_data=[{"name": "Boston", "country": "US"}],
+            text='[{"name":"Boston"}]',
+        ),
+    )
+
+    assert weather_api.geocode_location("Boston", "US") is None
+
+
+def test_fetch_current_weather_returns_none_on_request_error(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "key")
+
+    def fake_get(url, params, timeout):
+        raise weather_api.requests.RequestException("current failed")
+
+    monkeypatch.setattr(weather_api.requests, "get", fake_get)
+    assert weather_api.fetch_current_weather(1.0, 2.0, "metric") is None
+
+
+def test_fetch_current_weather_returns_none_on_json_error(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "key")
+
+    class BadJsonResponse(DummyResponse):
+        def json(self):
+            raise ValueError("bad json")
+
+    monkeypatch.setattr(
+        weather_api.requests,
+        "get",
+        lambda url, params, timeout: BadJsonResponse(text="not json"),
+    )
+
+    assert weather_api.fetch_current_weather(1.0, 2.0, "metric") is None
+
+
+def test_fetch_forecast_returns_none_without_key(monkeypatch):
+    monkeypatch.delenv("OPENWEATHER_API_KEY", raising=False)
+    assert weather_api.fetch_forecast(1.0, 2.0, "metric") is None
+
+
+def test_fetch_forecast_returns_none_on_invalid_json_shape(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "key")
+    monkeypatch.setattr(
+        weather_api.requests,
+        "get",
+        lambda url, params, timeout: DummyResponse(json_data=["bad"], text="[]"),
+    )
+
+    assert weather_api.fetch_forecast(1.0, 2.0, "metric") is None
+
+
+def test_fetch_forecast_returns_none_on_json_error(monkeypatch):
+    monkeypatch.setenv("OPENWEATHER_API_KEY", "key")
+
+    class BadJsonResponse(DummyResponse):
+        def json(self):
+            raise ValueError("bad json")
+
+    monkeypatch.setattr(
+        weather_api.requests,
+        "get",
+        lambda url, params, timeout: BadJsonResponse(text="not json"),
+    )
+
+    assert weather_api.fetch_forecast(1.0, 2.0, "metric") is None
